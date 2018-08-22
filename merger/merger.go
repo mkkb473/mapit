@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	// ArrayValueLength is the length of Ierator.Data as value in KV
-	ArrayValueLength int
-	// SamplingSize is the upper bound of int->[]byte for keys
-	SamplingSize int
+	// SamplingBound is the upper bound of int->[]byte for keys
+	// should be greater than 8 * (4**7)
+	SamplingBound int
 
-	fakeIterData []int
+	// BytesSize is the size of bytes array as Key
+	BytesSize int
 )
 
 // KV is Key-Value store data structure
@@ -34,17 +34,20 @@ func (iter *Iterator) Next() interface{} {
 	if iter.I == len(iter.Data) {
 		return nil
 	}
+	ret := iter.Data[iter.I]
 	iter.I++
-	return iter.Data[iter.I]
+	return ret
 }
 
+// MakeSortedRandKVArray returns an array of Key-Value pair with random sampled keys
+// KV's Key is parsed from randomly generated int32 with BigEndian
 func MakeSortedRandKVArray(keyNum int) []KV {
 	kvArr := []KV{}
 	rand.Seed(time.Now().UnixNano())
-	keys := rand.Perm(SamplingSize)[:keyNum]
+	keys := rand.Perm(SamplingBound)[:keyNum]
 	sort.Ints(keys)
 	for _, value := range keys {
-		bs := make([]byte, 4)
+		bs := make([]byte, BytesSize)
 		binary.BigEndian.PutUint32(bs, uint32(value))
 		rand.Seed(time.Now().UnixNano())
 		data := rand.Perm(20)[:rand.Intn(4)+1]
@@ -60,6 +63,7 @@ func MakeSortedRandKVArray(keyNum int) []KV {
 	return kvArr
 }
 
+// MergeTwoArries merges two sorted KV arries
 func MergeTwoArries(A, B *[]KV) *[]KV {
 	var C []KV
 	// A should always be shorter than B
@@ -67,6 +71,7 @@ func MergeTwoArries(A, B *[]KV) *[]KV {
 		A, B = B, A
 	}
 
+	// Same as merge two sorted list, O(n+4n) runtime
 	var headA, headB int
 	for headA != len(*A) && headB != len(*B) {
 		bytesCompare := bytes.Compare((*A)[headA].Key, (*B)[headB].Key)
