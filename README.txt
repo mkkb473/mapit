@@ -1,4 +1,4 @@
-go run cmd/main.go -bytes-size=1000000
+go run cmd/main.go -sampling-bound=1000000 -bytes-size=4
     -sampling-bound: should be greater than 131072 (8*(4**7))
     -bytes-size: should be greater than 4
 
