@@ -12,9 +12,10 @@ var (
 	// SamplingBound is the upper bound of int->[]byte for keys
 	// should be greater than 8 * (4**7)
 	SamplingBound int
-
 	// BytesSize is the size of bytes array as Key
 	BytesSize int
+	// IteratorSize
+	IteratorSize int
 )
 
 // KV is Key-Value store data structure
@@ -50,7 +51,7 @@ func MakeSortedRandKVArray(keyNum int) []KV {
 		bs := make([]byte, BytesSize)
 		binary.BigEndian.PutUint32(bs, uint32(value))
 		rand.Seed(time.Now().UnixNano())
-		data := rand.Perm(20)[:rand.Intn(4)+1]
+		data := rand.Perm(101)[:IteratorSize+1]
 		sort.Ints(data)
 		kvArr = append(kvArr, KV{
 			Key: bs,
